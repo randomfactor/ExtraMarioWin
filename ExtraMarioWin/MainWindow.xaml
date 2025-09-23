@@ -27,7 +27,12 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Border CornerRadius="8" Margin="4" Padding="10" Background="#FFF5F5F5" BorderBrush="#DDD" BorderThickness="1">
-                        <TextBlock Text="{Binding StageName}" FontSize="20" FontWeight="SemiBold"/>
+                        <DockPanel LastChildFill="True">
+                            <TextBlock Text="{Binding StageName}" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <Button Content="✖" Width="32" Height="32" Margin="8,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                                    Background="#FFE0E0E0" BorderBrush="#CCC" BorderThickness="1" 
+                                    ToolTip="Remove" Tag="{Binding}" Click="RemoveSinger_Click" />
+                        </DockPanel>
                     </Border>
                 </DataTemplate>
             </ListBox.ItemTemplate>

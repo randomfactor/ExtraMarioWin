@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,23 +19,37 @@ namespace ExtraMarioWin
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly KRoster _roster = new();
         public ObservableCollection<KSinger> Singers { get; } = new();
 
         public MainWindow()
         {
             InitializeComponent();
             DataContext = this;
-            // removed sample data; start empty
+            SyncSingersFromRoster();
+        }
+
+        private void SyncSingersFromRoster()
+        {
+            Singers.Clear();
+            foreach (var s in _roster.Singers)
+                Singers.Add(s);
         }
 
         private void NextButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: implement next logic
+            if (_roster.NextSinger())
+            {
+                SyncSingersFromRoster();
+            }
         }
 
         private void BumpButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: implement bump logic
+            if (_roster.Bump())
+            {
+                SyncSingersFromRoster();
+            }
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
@@ -42,7 +57,23 @@ namespace ExtraMarioWin
             var input = PromptForSingerName();
             if (!string.IsNullOrWhiteSpace(input))
             {
-                Singers.Add(new KSinger(Guid.NewGuid(), input.Trim()));
+                _roster.Add(new KSinger(Guid.NewGuid(), input.Trim()));
+                Singers.Add(_roster.Get(_roster.Count() - 1)!);
+            }
+        }
+
+        private void RemoveSinger_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is KSinger singer)
+            {
+                var result = MessageBox.Show(this, $"Do you really want to remove '{singer.StageName}'?", "Remove Singer", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    if (_roster.Remove(singer))
+                    {
+                        Singers.Remove(singer);
+                    }
+                }
             }
         }
 
