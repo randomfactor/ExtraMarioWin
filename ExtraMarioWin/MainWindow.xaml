@@ -5,8 +5,32 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ExtraMarioWin"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
-    </Grid>
+        Title="Extra Mario" Height="450" Width="800">
+    <DockPanel>
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Background="#EEE" Margin="0">
+            <Button Name="NextButton" Content="Next" Margin="4" Padding="12,6" Click="NextButton_Click"/>
+            <Button Name="BumpButton" Content="Bump" Margin="4" Padding="12,6" Click="BumpButton_Click"/>
+            <Button Name="AddButton" Content="Add" Margin="4" Padding="12,6" Click="AddButton_Click"/>
+        </StackPanel>
+        <ListBox ItemsSource="{Binding Singers}" BorderThickness="0" Background="Transparent"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ListBox.Style>
+                <Style TargetType="ListBox">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Style.Triggers>
+                        <Trigger Property="HasItems" Value="False">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ListBox.Style>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border CornerRadius="8" Margin="4" Padding="10" Background="#FFF5F5F5" BorderBrush="#DDD" BorderThickness="1">
+                        <TextBlock Text="{Binding StageName}" FontSize="20" FontWeight="SemiBold"/>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
 </Window>

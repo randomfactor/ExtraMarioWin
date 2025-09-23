@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,9 +18,79 @@ namespace ExtraMarioWin
     /// </summary>
     public partial class MainWindow : Window
     {
+        public ObservableCollection<KSinger> Singers { get; } = new();
+
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = this;
+            // removed sample data; start empty
+        }
+
+        private void NextButton_Click(object sender, RoutedEventArgs e)
+        {
+            // TODO: implement next logic
+        }
+
+        private void BumpButton_Click(object sender, RoutedEventArgs e)
+        {
+            // TODO: implement bump logic
+        }
+
+        private void AddButton_Click(object sender, RoutedEventArgs e)
+        {
+            var input = PromptForSingerName();
+            if (!string.IsNullOrWhiteSpace(input))
+            {
+                Singers.Add(new KSinger(Guid.NewGuid(), input.Trim()));
+            }
+        }
+
+        private string? PromptForSingerName()
+        {
+            var dialog = new Window
+            {
+                Title = "Add Singer",
+                Height = 150,
+                Width = 300,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                ResizeMode = ResizeMode.NoResize,
+                Owner = this,
+                Content = BuildDialogContent(out TextBox nameBox)
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                return nameBox.Text;
+            }
+            return null;
+        }
+
+        private Grid BuildDialogContent(out TextBox nameBox)
+        {
+            var grid = new Grid { Margin = new Thickness(10) };
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            var label = new TextBlock { Text = "Singer Name:", Margin = new Thickness(0,0,0,4) };
+            Grid.SetRow(label, 0);
+            grid.Children.Add(label);
+
+            nameBox = new TextBox { Margin = new Thickness(0,0,0,8) };
+            Grid.SetRow(nameBox, 1);
+            grid.Children.Add(nameBox);
+
+            var panel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+            var ok = new Button { Content = "OK", MinWidth = 60, IsDefault = true, Margin = new Thickness(0,0,6,0) };
+            var cancel = new Button { Content = "Cancel", MinWidth = 60, IsCancel = true };
+            ok.Click += (_, _) => { ((Window)grid.Parent!).DialogResult = true; };
+            cancel.Click += (_, _) => { ((Window)grid.Parent!).DialogResult = false; };
+            panel.Children.Add(ok);
+            panel.Children.Add(cancel);
+            Grid.SetRow(panel, 2);
+            grid.Children.Add(panel);
+            return grid;
         }
     }
 }
