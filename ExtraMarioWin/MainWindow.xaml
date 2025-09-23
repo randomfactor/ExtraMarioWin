@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ExtraMarioWin"
         mc:Ignorable="d"
-        Title="Extra Mario" Height="450" Width="800">
+        Title="Extra Mario" Height="600" Width="480" MinHeight="120" MinWidth="240">
     <DockPanel>
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Background="#EEE" Margin="0">
             <Button Name="NextButton" Content="Next" Margin="4" Padding="12,6" Click="NextButton_Click"/>
@@ -24,15 +24,24 @@
                     </Style.Triggers>
                 </Style>
             </ListBox.Style>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                </Style>
+            </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Border CornerRadius="8" Margin="4" Padding="10" Background="#FFF5F5F5" BorderBrush="#DDD" BorderThickness="1">
-                        <DockPanel LastChildFill="True">
-                            <TextBlock Text="{Binding StageName}" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" />
-                            <Button Content="✖" Width="32" Height="32" Margin="8,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" 
-                                    Background="#FFE0E0E0" BorderBrush="#CCC" BorderThickness="1" 
+                    <Border CornerRadius="8" Margin="4" Padding="10" Background="#FFF5F5F5" BorderBrush="#DDD" BorderThickness="1" HorizontalAlignment="Stretch">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{Binding StageName}" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <Button Grid.Column="1" Content="✖" Width="32" Height="32" Margin="8,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Background="#FFE0E0E0" BorderBrush="#CCC" BorderThickness="1"
                                     ToolTip="Remove" Tag="{Binding}" Click="RemoveSinger_Click" />
-                        </DockPanel>
+                        </Grid>
                     </Border>
                 </DataTemplate>
             </ListBox.ItemTemplate>
