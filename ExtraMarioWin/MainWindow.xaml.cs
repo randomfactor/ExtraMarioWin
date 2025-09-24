@@ -90,6 +90,15 @@ namespace ExtraMarioWin
                 Content = BuildDialogContent(out TextBox nameBox)
             };
 
+            // Ensure the TextBox receives keyboard focus when the dialog opens
+            nameBox.Focusable = true;
+            dialog.Loaded += (_, __) =>
+            {
+                nameBox.Focus();
+                nameBox.CaretIndex = nameBox.Text?.Length ?? 0;
+            };
+            FocusManager.SetFocusedElement(dialog, nameBox);
+
             if (dialog.ShowDialog() == true)
             {
                 return nameBox.Text;
