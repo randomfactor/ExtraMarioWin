@@ -6,6 +6,9 @@ Mario is a great and famous Karaoke Jockey (KJ). This application helps manage t
 
 ## Features
 - Add, remove, bump, and advance (`Next`) singers
+- Drag-and-drop reordering with grab handles (?) on each singer
+- Edit singer names via the pencil button; Guid is retained
+- Duplicate-name protection: Add/Edit dialogs disable OK and show a warning until the name is unique
 - Modernized UI with readable list and per-singer pastel colors
 - Daily history logging: appends the finished singer and timestamp to `history_YYYY-MM-DD.csv`
 - Daily roster persistence: saves and restores `roster_YYYY-MM-DD.csv` on app start
@@ -26,8 +29,8 @@ Files are written under the user LocalApplicationData folder in `Extra Mario`:
 On startup the app attempts to restore today’s roster; if the file does not exist, the roster starts empty.
 
 ## Architecture Snapshot
-- `KSinger`: model for a singer (Id, StageName)
-- `KRoster`: in-memory roster management
+- `KSinger`: model for a singer (Id, StageName, StageBrush)
+- `KRoster`: in-memory roster management (Add, Remove, Bump, Next, Move)
 - `IPerformerHistory` / `FilePerformerHistory`: append-only daily history
 - `IPerformerRosterStorage` / `FilePerformerRosterStorage`: daily roster save/restore
 - `MainWindow`: WPF UI and simple event handlers
