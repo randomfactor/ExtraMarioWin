@@ -6,12 +6,30 @@ namespace ExtraMarioWin.History
 {
     public class FilePerformerHistory : IPerformerHistory
     {
+        private readonly string? _baseDir;
+        public FilePerformerHistory() { }
+        public FilePerformerHistory(string baseDirectory)
+        {
+            _baseDir = baseDirectory;
+        }
+
+        private string GetAppDir()
+        {
+            if (!string.IsNullOrEmpty(_baseDir))
+            {
+                Directory.CreateDirectory(_baseDir);
+                return _baseDir!;
+            }
+            var appDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Extra Mario");
+            Directory.CreateDirectory(appDir);
+            return appDir;
+        }
+
         public void SaveSinger(KSinger singer)
         {
             try
             {
-                var appDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Extra Mario");
-                Directory.CreateDirectory(appDir);
+                var appDir = GetAppDir();
                 var filePath = Path.Combine(appDir, $"history_{DateTime.Now:yyyy-MM-dd}.csv");
 
                 string name = singer.StageName ?? string.Empty;

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ExtraMarioWin"
         mc:Ignorable="d"
-        Title="Extra Mario" Height="600" Width="480" MinHeight="120" MinWidth="240"
+        Title="Extra Mario" Height="600" Width="600" MinHeight="120" MinWidth="240"
         Background="#808080">
     <Window.Resources>
         <!-- Modern, raised button style -->

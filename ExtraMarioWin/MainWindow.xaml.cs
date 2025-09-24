@@ -23,15 +23,37 @@ namespace ExtraMarioWin
     {
         private readonly KRoster _roster = new();
         private readonly IPerformerHistory _history;
+        private readonly IPerformerRosterStorage _rosterStorage;
         public ObservableCollection<KSinger> Singers { get; } = new();
 
-        public MainWindow() : this(new FilePerformerHistory()) {}
-        public MainWindow(IPerformerHistory history)
+        public MainWindow() : this(new FilePerformerHistory(), new FilePerformerRosterStorage()) {}
+        public MainWindow(IPerformerHistory history, IPerformerRosterStorage rosterStorage)
         {
             InitializeComponent();
             _history = history;
+            _rosterStorage = rosterStorage;
             DataContext = this;
+
+            RestoreRosterIfAvailable();
             SyncSingersFromRoster();
+        }
+
+        private void RestoreRosterIfAvailable()
+        {
+            try
+            {
+                var restored = _rosterStorage.RestoreRoster();
+                if (restored.Count > 0)
+                {
+                    foreach (var s in restored) _roster.Add(s);
+                }
+            }
+            catch { }
+        }
+
+        private void PersistRoster()
+        {
+            try { _rosterStorage.SaveRoster(_roster.Singers.ToList()); } catch { }
         }
 
         private void SyncSingersFromRoster()
@@ -52,6 +74,7 @@ namespace ExtraMarioWin
 
             if (_roster.NextSinger())
             {
+                PersistRoster();
                 SyncSingersFromRoster();
             }
         }
@@ -60,6 +83,7 @@ namespace ExtraMarioWin
         {
             if (_roster.Bump())
             {
+                PersistRoster();
                 SyncSingersFromRoster();
             }
         }
@@ -70,6 +94,7 @@ namespace ExtraMarioWin
             if (!string.IsNullOrWhiteSpace(input))
             {
                 _roster.Add(new KSinger(Guid.NewGuid(), input.Trim()));
+                PersistRoster();
                 Singers.Add(_roster.Get(_roster.Count() - 1)!);
             }
         }
@@ -83,6 +108,7 @@ namespace ExtraMarioWin
                 {
                     if (_roster.Remove(singer))
                     {
+                        PersistRoster();
                         Singers.Remove(singer);
                     }
                 }
