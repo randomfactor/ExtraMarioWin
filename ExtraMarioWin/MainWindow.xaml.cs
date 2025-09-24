@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -11,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using ExtraMarioWin.History;
 
 namespace ExtraMarioWin
 {
@@ -20,11 +22,14 @@ namespace ExtraMarioWin
     public partial class MainWindow : Window
     {
         private readonly KRoster _roster = new();
+        private readonly IPerformerHistory _history;
         public ObservableCollection<KSinger> Singers { get; } = new();
 
-        public MainWindow()
+        public MainWindow() : this(new FilePerformerHistory()) {}
+        public MainWindow(IPerformerHistory history)
         {
             InitializeComponent();
+            _history = history;
             DataContext = this;
             SyncSingersFromRoster();
         }
@@ -38,6 +43,13 @@ namespace ExtraMarioWin
 
         private void NextButton_Click(object sender, RoutedEventArgs e)
         {
+            // Log the current singer before advancing
+            var finished = _roster.Get(0);
+            if (finished != null)
+            {
+                _history.SaveSinger(finished);
+            }
+
             if (_roster.NextSinger())
             {
                 SyncSingersFromRoster();
