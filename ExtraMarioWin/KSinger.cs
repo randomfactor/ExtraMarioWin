@@ -59,6 +59,42 @@ namespace ExtraMarioWin
             FromHex("#FFECFDF5"), // teal mint
             FromHex("#FFF5F3FF"), // lavender
             FromHex("#FFFFF1F2"), // blush
+            FromHex("#FFFFE4E1"), // misty rose
+            FromHex("#FFFFF0F5"), // lavender blush
+            FromHex("#FFF0FFF0"), // honeydew
+            FromHex("#FFF0FFFF"), // azure
+            FromHex("#FFFFFAF0"), // floral white
+            FromHex("#FFFFF8DC"), // cornsilk
+            FromHex("#FFFAFAD2"), // light goldenrod yellow
+            FromHex("#FFE6E6FA"), // lavender (pale)
+            FromHex("#FFE0FFFF"), // light cyan
+            FromHex("#FFFFF5EE"), // seashell
+            FromHex("#FFF5F5DC"), // beige
+            FromHex("#FFFAF0E6"), // linen
+            FromHex("#FFFDF5E6"), // old lace
+            FromHex("#FFFFEBCD"), // blanched almond
+            FromHex("#FFFFEFD5"), // papaya whip
+            FromHex("#FFFFDAB9"), // peach puff
+            FromHex("#FFFFDEAD"), // navajo white
+            FromHex("#FFE6FFE6"), // pale mint
+            FromHex("#FFD5EAF5"), // light periwinkle
+            FromHex("#FFF2D4D0"), // light salmon
+            FromHex("#FFD4EDDA"), // light jade
+            FromHex("#FFFFD3B6"), // light apricot
+            FromHex("#FFE1BEE7"), // light lavender
+            FromHex("#FFE8CBAF"), // light tan
+            FromHex("#FFEAD1DC"), // light thistle
+            FromHex("#FFFFE6CC"), // light cream
+            FromHex("#FFF0F8FF"), // light icy blue (AliceBlue)
+            FromHex("#FFDFD3FF"), // pale lilac
+            FromHex("#FFFFFFD1"), // light butter
+            FromHex("#FFD1E8FF"), // light ice
+            FromHex("#FFE8D8B0"), // light khaki
+            FromHex("#FFF2A3B8"), // light rose
+            FromHex("#FFD3C6EA"), // light violet
+            FromHex("#FFD1F2EB"), // light minty
+            FromHex("#FFE3FFE4"), // very pale green
+            FromHex("#FFFFD8E6"), // very pale pink
         };
 
         private static SolidColorBrush GetPastelBrushFromGuid(Guid guid)

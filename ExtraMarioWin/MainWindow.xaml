@@ -106,7 +106,7 @@
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Border CornerRadius="10" Margin="4" Padding="12" BorderBrush="#DDD" BorderThickness="1" HorizontalAlignment="Stretch"
+                    <Border CornerRadius="10" Margin="2" Padding="6" BorderBrush="#DDD" BorderThickness="1" HorizontalAlignment="Stretch"
                             Background="{Binding StageBrush}">
                         <Grid>
                             <Grid.ColumnDefinitions>

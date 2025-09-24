@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using ExtraMarioWin.History;
 
 namespace ExtraMarioWin
@@ -26,6 +27,10 @@ namespace ExtraMarioWin
         private readonly IPerformerRosterStorage _rosterStorage;
         public ObservableCollection<KSinger> Singers { get; } = new();
 
+        // Drag-and-drop fields
+        private Point _dragStartPoint;
+        private ListBoxItem? _draggedItemContainer;
+
         public MainWindow() : this(new FilePerformerHistory(), new FilePerformerRosterStorage()) {}
         public MainWindow(IPerformerHistory history, IPerformerRosterStorage rosterStorage)
         {
@@ -36,6 +41,13 @@ namespace ExtraMarioWin
 
             RestoreRosterIfAvailable();
             SyncSingersFromRoster();
+        }
+
+        private bool IsNameUnique(string? name, KSinger? exclude = null)
+        {
+            var candidate = (name ?? string.Empty).Trim();
+            if (candidate.Length == 0) return false;
+            return !_roster.Singers.Any(s => !ReferenceEquals(s, exclude) && string.Equals((s.StageName ?? string.Empty).Trim(), candidate, StringComparison.OrdinalIgnoreCase));
         }
 
         private void RestoreRosterIfAvailable()
@@ -76,6 +88,7 @@ namespace ExtraMarioWin
             {
                 PersistRoster();
                 SyncSingersFromRoster();
+                ScrollCurrentIntoView();
             }
         }
 
@@ -119,7 +132,7 @@ namespace ExtraMarioWin
         {
             if (sender is Button btn && btn.Tag is KSinger singer)
             {
-                var newName = PromptForEditName(singer.StageName ?? string.Empty);
+                var newName = PromptForEditName(singer);
                 if (!string.IsNullOrWhiteSpace(newName))
                 {
                     singer.StageName = newName.Trim();
@@ -135,12 +148,12 @@ namespace ExtraMarioWin
             }
         }
 
-        private string? PromptForEditName(string current)
+        private string? PromptForEditName(KSinger singer)
         {
             var dialog = new Window
             {
                 Title = "Edit Singer",
-                Height = 160,
+                Height = 180,
                 Width = 320,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 ResizeMode = ResizeMode.NoResize,
@@ -151,27 +164,40 @@ namespace ExtraMarioWin
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
             var label = new TextBlock { Text = "Singer Name:", Margin = new Thickness(0, 0, 0, 4) };
             Grid.SetRow(label, 0);
             grid.Children.Add(label);
 
-            var nameBox = new TextBox { Margin = new Thickness(0, 0, 0, 8), Text = current };
+            var nameBox = new TextBox { Margin = new Thickness(0, 0, 0, 4), Text = singer.StageName ?? string.Empty };
             Grid.SetRow(nameBox, 1);
             grid.Children.Add(nameBox);
 
+            var warning = new TextBlock { Foreground = Brushes.DarkRed, Visibility = Visibility.Collapsed, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0,0,0,8) };
+            Grid.SetRow(warning, 2);
+            grid.Children.Add(warning);
+
             var panel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
-            var ok = new Button { Content = "OK", MinWidth = 60, IsDefault = true, Margin = new Thickness(0, 0, 6, 0) };
+            var ok = new Button { Content = "OK", MinWidth = 60, IsDefault = true, Margin = new Thickness(0, 0, 6, 0), IsEnabled = false };
             var cancel = new Button { Content = "Cancel", MinWidth = 60, IsCancel = true };
             ok.Click += (_, _) => { dialog.DialogResult = true; };
             cancel.Click += (_, _) => { dialog.DialogResult = false; };
             panel.Children.Add(ok);
             panel.Children.Add(cancel);
-            Grid.SetRow(panel, 2);
+            Grid.SetRow(panel, 3);
             grid.Children.Add(panel);
 
+            void UpdateOk()
+            {
+                var unique = IsNameUnique(nameBox.Text, singer);
+                ok.IsEnabled = unique;
+                warning.Visibility = (!unique && !string.IsNullOrWhiteSpace(nameBox.Text)) ? Visibility.Visible : Visibility.Collapsed;
+                warning.Text = warning.Visibility == Visibility.Visible ? "This name is already in the roster." : string.Empty;
+            }
+            nameBox.TextChanged += (_, __) => UpdateOk();
             dialog.Content = grid;
-            dialog.Loaded += (_, __) => { nameBox.Focus(); nameBox.CaretIndex = nameBox.Text.Length; };
+            dialog.Loaded += (_, __) => { nameBox.Focus(); nameBox.CaretIndex = nameBox.Text.Length; UpdateOk(); };
 
             return dialog.ShowDialog() == true ? nameBox.Text : null;
         }
@@ -181,20 +207,29 @@ namespace ExtraMarioWin
             var dialog = new Window
             {
                 Title = "Add Singer",
-                Height = 150,
+                Height = 170,
                 Width = 300,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 ResizeMode = ResizeMode.NoResize,
                 Owner = this,
-                Content = BuildDialogContent(out TextBox nameBox)
+                Content = BuildDialogContent(out TextBox nameBox, out Button okButton, out TextBlock warning)
             };
 
-            // Ensure the TextBox receives keyboard focus when the dialog opens
+            // Ensure the TextBox receives keyboard focus when the dialog opens and enable OK only when unique
             nameBox.Focusable = true;
+            void UpdateOk()
+            {
+                var unique = IsNameUnique(nameBox.Text);
+                okButton.IsEnabled = unique;
+                warning.Visibility = (!unique && !string.IsNullOrWhiteSpace(nameBox.Text)) ? Visibility.Visible : Visibility.Collapsed;
+                warning.Text = warning.Visibility == Visibility.Visible ? "This name is already in the roster." : string.Empty;
+            }
+            nameBox.TextChanged += (_, __) => UpdateOk();
             dialog.Loaded += (_, __) =>
             {
                 nameBox.Focus();
                 nameBox.CaretIndex = nameBox.Text?.Length ?? 0;
+                UpdateOk();
             };
             FocusManager.SetFocusedElement(dialog, nameBox);
 
@@ -205,9 +240,10 @@ namespace ExtraMarioWin
             return null;
         }
 
-        private Grid BuildDialogContent(out TextBox nameBox)
+        private Grid BuildDialogContent(out TextBox nameBox, out Button okButton, out TextBlock warning)
         {
             var grid = new Grid { Margin = new Thickness(10) };
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -216,24 +252,38 @@ namespace ExtraMarioWin
             Grid.SetRow(label, 0);
             grid.Children.Add(label);
 
-            nameBox = new TextBox { Margin = new Thickness(0,0,0,8) };
+            nameBox = new TextBox { Margin = new Thickness(0,0,0,4) };
             Grid.SetRow(nameBox, 1);
             grid.Children.Add(nameBox);
 
+            warning = new TextBlock { Foreground = Brushes.DarkRed, Visibility = Visibility.Collapsed, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0,0,0,8) };
+            Grid.SetRow(warning, 2);
+            grid.Children.Add(warning);
+
             var panel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
-            var ok = new Button { Content = "OK", MinWidth = 60, IsDefault = true, Margin = new Thickness(0,0,6,0) };
+            okButton = new Button { Content = "OK", MinWidth = 60, IsDefault = true, Margin = new Thickness(0,0,6,0), IsEnabled = false };
             var cancel = new Button { Content = "Cancel", MinWidth = 60, IsCancel = true };
-            ok.Click += (_, _) => { ((Window)grid.Parent!).DialogResult = true; };
+            okButton.Click += (_, _) => { ((Window)grid.Parent!).DialogResult = true; };
             cancel.Click += (_, _) => { ((Window)grid.Parent!).DialogResult = false; };
-            panel.Children.Add(ok);
+            panel.Children.Add(okButton);
             panel.Children.Add(cancel);
-            Grid.SetRow(panel, 2);
+            Grid.SetRow(panel, 3);
             grid.Children.Add(panel);
             return grid;
         }
 
-        private Point _dragStartPoint;
-        private ListBoxItem? _draggedItemContainer;
+        private void ScrollCurrentIntoView()
+        {
+            if (RosterList == null) return;
+            RosterList.Dispatcher.InvokeAsync(() =>
+            {
+                if (RosterList.Items.Count > 0)
+                {
+                    RosterList.UpdateLayout();
+                    RosterList.ScrollIntoView(RosterList.Items[0]);
+                }
+            }, DispatcherPriority.Background);
+        }
 
         private void RosterList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
