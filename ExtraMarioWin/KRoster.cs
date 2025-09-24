@@ -40,6 +40,17 @@ namespace ExtraMarioWin
         // Backwards-compatible name kept for existing code/tests
         public bool Next() => NextSinger();
 
+        public bool Move(int oldIndex, int newIndex)
+        {
+            if (oldIndex < 0 || oldIndex >= _singers.Count) return false;
+            if (newIndex < 0 || newIndex >= _singers.Count) return false;
+            if (oldIndex == newIndex) return false;
+            var item = _singers[oldIndex];
+            _singers.RemoveAt(oldIndex);
+            _singers.Insert(newIndex, item);
+            return true;
+        }
+
         public int Count()
         {
             return _singers.Count;

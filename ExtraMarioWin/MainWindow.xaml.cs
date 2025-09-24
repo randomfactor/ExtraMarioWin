@@ -115,6 +115,67 @@ namespace ExtraMarioWin
             }
         }
 
+        private void EditSinger_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is KSinger singer)
+            {
+                var newName = PromptForEditName(singer.StageName ?? string.Empty);
+                if (!string.IsNullOrWhiteSpace(newName))
+                {
+                    singer.StageName = newName.Trim();
+                    // refresh displayed text
+                    var idx = Singers.IndexOf(singer);
+                    if (idx >= 0)
+                    {
+                        // Replace to raise collection change for some bindings
+                        Singers[idx] = Singers[idx];
+                    }
+                    PersistRoster();
+                }
+            }
+        }
+
+        private string? PromptForEditName(string current)
+        {
+            var dialog = new Window
+            {
+                Title = "Edit Singer",
+                Height = 160,
+                Width = 320,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                ResizeMode = ResizeMode.NoResize,
+                Owner = this,
+            };
+
+            var grid = new Grid { Margin = new Thickness(10) };
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            var label = new TextBlock { Text = "Singer Name:", Margin = new Thickness(0, 0, 0, 4) };
+            Grid.SetRow(label, 0);
+            grid.Children.Add(label);
+
+            var nameBox = new TextBox { Margin = new Thickness(0, 0, 0, 8), Text = current };
+            Grid.SetRow(nameBox, 1);
+            grid.Children.Add(nameBox);
+
+            var panel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+            var ok = new Button { Content = "OK", MinWidth = 60, IsDefault = true, Margin = new Thickness(0, 0, 6, 0) };
+            var cancel = new Button { Content = "Cancel", MinWidth = 60, IsCancel = true };
+            ok.Click += (_, _) => { dialog.DialogResult = true; };
+            cancel.Click += (_, _) => { dialog.DialogResult = false; };
+            panel.Children.Add(ok);
+            panel.Children.Add(cancel);
+            Grid.SetRow(panel, 2);
+            grid.Children.Add(panel);
+
+            dialog.Content = grid;
+            dialog.Loaded += (_, __) => { nameBox.Focus(); nameBox.CaretIndex = nameBox.Text.Length; };
+
+            return dialog.ShowDialog() == true ? nameBox.Text : null;
+        }
+
         private string? PromptForSingerName()
         {
             var dialog = new Window
@@ -169,6 +230,94 @@ namespace ExtraMarioWin
             Grid.SetRow(panel, 2);
             grid.Children.Add(panel);
             return grid;
+        }
+
+        private Point _dragStartPoint;
+        private ListBoxItem? _draggedItemContainer;
+
+        private void RosterList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            _dragStartPoint = e.GetPosition(null);
+            _draggedItemContainer = (e.OriginalSource as DependencyObject)?.FindAncestor<ListBoxItem>();
+        }
+
+        private void RosterList_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton != MouseButtonState.Pressed) return;
+            if (_draggedItemContainer == null) return;
+            var currentPos = e.GetPosition(null);
+            if ((Math.Abs(currentPos.X - _dragStartPoint.X) > SystemParameters.MinimumHorizontalDragDistance) ||
+                (Math.Abs(currentPos.Y - _dragStartPoint.Y) > SystemParameters.MinimumVerticalDragDistance))
+            {
+                var listBox = (ListBox)sender;
+                var data = _draggedItemContainer.DataContext as KSinger;
+                if (data != null)
+                {
+                    DragDrop.DoDragDrop(listBox, data, DragDropEffects.Move);
+                }
+                _draggedItemContainer = null;
+            }
+        }
+
+        private void RosterList_DragOver(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(typeof(KSinger)))
+            {
+                e.Effects = DragDropEffects.None;
+                e.Handled = true;
+            }
+        }
+
+        private void RosterList_Drop(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(typeof(KSinger))) return;
+            var droppedSinger = (KSinger)e.Data.GetData(typeof(KSinger))!;
+
+            var listBox = (ListBox)sender;
+            var pos = e.GetPosition(listBox);
+            int targetIndex = GetCurrentIndexFromPoint(listBox, pos);
+            int oldIndex = Singers.IndexOf(droppedSinger);
+            if (oldIndex < 0) return;
+
+            if (targetIndex < 0) targetIndex = Singers.Count - 1;
+            if (targetIndex >= Singers.Count) targetIndex = Singers.Count - 1;
+
+            if (_roster.Move(oldIndex, targetIndex))
+            {
+                // Update observable collection to match new order
+                var item = Singers[oldIndex];
+                Singers.RemoveAt(oldIndex);
+                Singers.Insert(targetIndex, item);
+                PersistRoster();
+            }
+        }
+
+        private int GetCurrentIndexFromPoint(ListBox listBox, Point point)
+        {
+            for (int i = 0; i < listBox.Items.Count; i++)
+            {
+                var container = (ListBoxItem)listBox.ItemContainerGenerator.ContainerFromIndex(i);
+                if (container == null) continue;
+                var bounds = VisualTreeHelper.GetDescendantBounds(container);
+                var topLeft = container.TranslatePoint(new Point(0, 0), listBox);
+                var rect = new Rect(topLeft, bounds.Size);
+                if (rect.Contains(point)) return i;
+            }
+            return -1;
+        }
+    }
+
+    internal static class VisualTreeHelpers
+    {
+        public static T? FindAncestor<T>(this DependencyObject obj) where T : DependencyObject
+        {
+            var current = obj;
+            while (current != null)
+            {
+                if (current is T t) return t;
+                current = VisualTreeHelper.GetParent(current);
+            }
+            return null;
         }
     }
 }

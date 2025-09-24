@@ -1,13 +1,17 @@
 using System;
+using System.ComponentModel;
 using System.Windows.Media;
 
 namespace ExtraMarioWin
 {
-    public class KSinger
+    public class KSinger : INotifyPropertyChanged
     {
         // Backing fields (originally required as fields)
         public Guid id;
         public string? stageName;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         // CLR properties for WPF binding
         public Guid Id
@@ -15,14 +19,26 @@ namespace ExtraMarioWin
             get => id;
             set
             {
-                id = value;
-                _stageBrush = null; // reset cached brush if id changes
+                if (id != value)
+                {
+                    id = value;
+                    _stageBrush = null; // reset cached brush if id changes
+                    OnPropertyChanged(nameof(Id));
+                    OnPropertyChanged(nameof(StageBrush));
+                }
             }
         }
         public string? StageName
         {
             get => stageName;
-            set => stageName = value;
+            set
+            {
+                if (stageName != value)
+                {
+                    stageName = value;
+                    OnPropertyChanged(nameof(StageName));
+                }
+            }
         }
 
         // UI helper: deterministic pastel color per singer

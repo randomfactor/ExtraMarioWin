@@ -91,11 +91,17 @@
             <Button Style="{StaticResource ActionButtonStyle}" Name="BumpButton" Content="Bump" Click="BumpButton_Click"/>
             <Button Style="{StaticResource ActionButtonStyle}" Name="AddButton" Content="Add" Click="AddButton_Click"/>
         </StackPanel>
-        <ListBox ItemsSource="{Binding Singers}" BorderThickness="0" Background="{StaticResource RosterBackground}"
+        <ListBox x:Name="RosterList" ItemsSource="{Binding Singers}" BorderThickness="0" Background="{StaticResource RosterBackground}"
+                 AllowDrop="True"
+                 PreviewMouseLeftButtonDown="RosterList_PreviewMouseLeftButtonDown"
+                 PreviewMouseMove="RosterList_PreviewMouseMove"
+                 Drop="RosterList_Drop"
+                 DragOver="RosterList_DragOver"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="AllowDrop" Value="True" />
                 </Style>
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
@@ -104,11 +110,20 @@
                             Background="{Binding StageBrush}">
                         <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{Binding StageName}" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                            <Button Grid.Column="1" Content="✖" Width="32" Height="32" Margin="8,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                            <!-- Grab handle -->
+                            <TextBlock Grid.Column="0" Text="☰" FontSize="18" Opacity="0.6" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding StageName}" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <!-- Edit (pencil) button -->
+                            <Button Grid.Column="2" Content="✎" Width="32" Height="32" Margin="8,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Background="#FFEEF5FF" BorderBrush="#FFB7C6FF" BorderThickness="1" Foreground="#333"
+                                    ToolTip="Edit" Tag="{Binding}" Click="EditSinger_Click" />
+                            <!-- Remove button -->
+                            <Button Grid.Column="3" Content="✖" Width="32" Height="32" Margin="8,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center"
                                     Background="#FFFCE8E8" BorderBrush="#FFC3A6A6" BorderThickness="1" Foreground="#7A1616"
                                     ToolTip="Remove" Tag="{Binding}" Click="RemoveSinger_Click" />
                         </Grid>
