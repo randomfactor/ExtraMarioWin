@@ -1,5 +1,7 @@
 # Extra Mario (WPF, .NET 9)
 
+![Extra Mario](ExtraMario.png)
+
 A lightweight WPF app to manage a karaoke singer roster quickly and cleanly — like having an extra Mario.
 
 Mario is a great and famous Karaoke Jockey (KJ). This application helps manage the roster like having an extra Mario on hand.
